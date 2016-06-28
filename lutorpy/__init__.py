@@ -16,7 +16,7 @@ except:
     pass
 
 if _platform == "linux" or _platform == "linux2":
-    lualib = ctypes.CDLL(os.path.join(TorchInstallPath, 'lib/libluajit.so"), mode=ctypes.RTLD_GLOBAL)
+    lualib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libluajit.so"), mode=ctypes.RTLD_GLOBAL)
     THlib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libTH.so"), mode=ctypes.RTLD_GLOBAL)
     luaTlib = ctypes.CDLL(os.path.join(TorchInstallPath,"lib/libluaT.so"), mode=ctypes.RTLD_GLOBAL)
 elif _platform == "darwin":
