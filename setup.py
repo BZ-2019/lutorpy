@@ -79,7 +79,7 @@ def has_option(name):
 
 import numpy
 
-includes = [ os.path.join(torch_install_dir, '/include'), os.path.join(torch_install_dir, '/include/TH'), numpy.get_include()]
+includes = [ os.path.join(torch_install_dir, 'include'), os.path.join(torch_install_dir, 'include/TH'), numpy.get_include()]
 
 ext_args = {
     'include_dirs': includes,
