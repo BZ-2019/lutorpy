@@ -1,8 +1,9 @@
 
 import sys
 import os
-
-from glob import iglob
+import os.path
+import datetime
+import platform
 
 try:
     # use setuptools if available
@@ -21,160 +22,54 @@ if 'setuptools' in sys.modules:
     extra_setup_args['test_suite'] = 'lutorpy.tests.suite'
     extra_setup_args["zip_safe"] = False
 
-
-class PkgConfigError(RuntimeError):
-    pass
-
-
-def try_int(s):
-    try:
-        return int(s)
-    except ValueError:
-        return s
-
-
-def cmd_output(command):
-    """
-    Returns the exit code and output of the program, as a triplet of the form
-    (exit_code, stdout, stderr).
-    """
-    env = os.environ.copy()
-    if not env.has_key('PKG_CONFIG_PATH'):
-        env['PKG_CONFIG_PATH'] = ''
-    env['PKG_CONFIG_PATH'] = env['PKG_CONFIG_PATH'] + ':' + os.getcwd()
-    env['LANG'] = ''
-    import subprocess
-    proc = subprocess.Popen(command,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            env=env)
-    stdout, stderr = proc.communicate()
-    exit_code = proc.wait()
-    if exit_code != 0:
-        raise PkgConfigError(stderr.decode('ISO8859-1'))
-    return stdout
-
-
-def decode_path_output(s):
-    if sys.version_info[0] < 3:
-        return s  # no need to decode, and safer not to do it
-    # we don't really know in which encoding pkgconfig
-    # outputs its results, so we try to guess
-    for encoding in (sys.getfilesystemencoding(),
-                     sys.getdefaultencoding(),
-                     'utf8'):
-        try:
-            return s.decode(encoding)
-        except UnicodeDecodeError: pass
-    return s.decode('iso8859-1')
-
-
-# try to find LuaJIT installation using pkgconfig
-
-def check_lua_installed(package='luajit', min_version='2'):
-    try:
-        cmd_output('pkg-config %s --exists' % package)
-    except RuntimeError:
-        # pkg-config gives no stdout when it is given --exists and it cannot
-        # find the package, so we'll give it some better output
-        error = sys.exc_info()[1]
-        if not error.args[0]:
-            raise RuntimeError("pkg-config cannot find an installed %s" % package)
-        raise
-
-    lua_version = cmd_output('pkg-config %s --modversion' % package).decode('iso8859-1')
-    try:
-        if tuple(map(try_int, lua_version.split('.'))) < tuple(map(try_int, min_version.split('.'))):
-            raise PkgConfigError("Expected version %s+ of %s, but found %s" %
-                                 (min_version, package, lua_version))
-    except (ValueError, TypeError):
-        print("failed to parse version '%s' of installed %s package, minimum is %s" % (
-            lua_version, package, min_version))
+torch_install_dir = os.getenv('TORCH_INSTALL')
+if torch_install_dir is None:
+    default_torch_path = os.path.join(os.path.expanduser("~"), "torch/install/bin/torch-activate")
+    if os.path.exists(default_torch_path):
+        torch_install_dir = os.path.join(os.path.expanduser("~"), "torch/install")
     else:
-        print("pkg-config found %s version %s" % (package, lua_version))
+        luajit_path = os.popen("which luajit").read()
+        assert 'torch' in luajit_path, 'failed to find torch luajit, please set env variable TORCH_INSTALL to torch/install'
+        torch_install_dir = os.path.abspath(os.path.join(luajit_path.strip(),'../../'))
+assert torch_install_dir, 'no torch installation is found, please set env variable TORCH_INSTALL to torch/install'
 
+osfamily = platform.uname()[0]
+print('torch_install:', torch_install_dir)
+print('os family', osfamily)
 
-def lua_include(package='luajit'):
-    cflag_out = cmd_output('pkg-config %s --cflags-only-I' % package)
-    cflag_out = decode_path_output(cflag_out)
+compile_options = []
+if osfamily == 'Windows':
+    compile_options.append('/EHsc')
 
-    def trim_i(s):
-        if s.startswith('-I'):
-            return os.path.expanduser(s[2:])
-        return os.path.expanduser(s)
-    return list(map(trim_i, cflag_out.split()))
+if osfamily in ['Linux', 'Darwin']:
+    compile_options.append('-std=c++0x')
+    # compile_options.append('-g')
+    compile_options.append('-Wno-unused-function')
+    compile_options.append('-Wno-unreachable-code')
+    compile_options.append('-Wno-strict-prototypes')
+    if 'DEBUG' in os.environ:
+        compile_options.append('-O0')
+        compile_options.append('-g')
+ 
+runtime_library_dirs = []
+libraries = []
+extra_link_args = []
+#libraries.append('lua5.1')
+libraries.append('luaT')
+libraries.append('TH')
 
+library_dirs = []
+# library_dirs.append('cbuild')
+library_dirs.append(torch_install_dir + '/lib')
 
-def lua_libs(package='luajit'):
-    libs_out = cmd_output('pkg-config %s --libs' % package)
-    libs_out = decode_path_output(libs_out)
-    def expand_user(s):
-        return s.replace('~',os.path.expanduser('~'))
-    return list(map(expand_user, libs_out.split()))
+if osfamily != 'Windows':
+    runtime_library_dirs = [torch_install_dir + '/lib']
 
+if osfamily == 'Windows':
+    libraries.append('winmm')
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-
-# check if LuaJIT is in a subdirectory and build statically against it
-
-def find_lua_build(no_luajit=False):
-    # try to find local LuaJIT2 build
-    os_path = os.path
-    for filename in os.listdir(basedir):
-        if not filename.lower().startswith('luajit'):
-            continue
-        filepath = os_path.join(basedir, filename, 'src')
-        if not os_path.isdir(filepath):
-            continue
-        libfile = os_path.join(filepath, 'libluajit.a')
-        if os_path.isfile(libfile):
-            print("found LuaJIT build in %s" % filepath)
-            print("building statically")
-            return dict(extra_objects=[libfile],
-                        include_dirs=[filepath])
-        # also check for lua51.lib, the Windows equivalent of libluajit.a
-        for libfile in iglob(os_path.join(filepath, 'lua5?.lib')):
-            if os_path.isfile(libfile):
-                print("found LuaJIT build in %s (%s)" % (
-                    filepath, os.path.basename(libfile)))
-                print("building statically")
-                # And return the dll file name too, as we need to
-                # include it in the install directory
-                return dict(extra_objects=[libfile],
-                            include_dirs=[filepath],
-                            libfile=os.path.basename(libfile))
-    print("No local build of LuaJIT2 found in lutorpy directory")
-
-    # try to find installed LuaJIT2 or Lua
-    if no_luajit:
-        packages = []
-    else:
-        packages = [('luajit', '2')]
-    packages += [
-        (name, lua_version)
-        for lua_version in ('5.2', '5.1')
-        for name in ('lua%s' % lua_version, 'lua-%s' % lua_version, 'lua')
-    ]
-
-    for package_name, min_version in packages:
-        print("Checking for installed %s library using pkg-config" %
-              package_name)
-        try:
-            check_lua_installed(package_name, min_version)
-            return dict(extra_objects=lua_libs(package_name),
-                        include_dirs=lua_include(package_name))
-        except RuntimeError:
-            print("Did not find %s using pkg-config: %s" % (
-                package_name, sys.exc_info()[1]))
-
-    error = ("None of LuaJIT2, Lua 5.1 or Lua 5.2 were found. Please install "
-             "Lua and its development packages, "
-             "or put a local build into the lutorpy main directory.")
-    print(error)
-    return {}
-
+if osfamily == 'Darwin':  # Mac OS X
+    extra_link_args.append('-Wl,-rpath,' + torch_install_dir + '/lib')
 
 def has_option(name):
     if name in sys.argv[1:]:
@@ -182,23 +77,18 @@ def has_option(name):
         return True
     return False
 
-libraries = []
-libraries.append('luaT')
-libraries.append('TH')
-
 import numpy
-config = find_lua_build(no_luajit=has_option('--no-luajit'))
-includes = config.get('include_dirs')
-includes.append(numpy.get_include())
+
+includes = [torch_install_dir, numpy.get_include()]
+
 ext_args = {
-    'extra_objects': config.get('extra_objects'),
     'include_dirs': includes,
     'libraries': libraries,
-    'library_dirs': config.get('libdir'),
-    'runtime_library_dirs':  config.get('libdir')
+    'library_dirs': library_dirs,
+    'extra_link_args': extra_link_args,
+    'extra_compile_args': compile_options,
+    'runtime_library_dirs':  runtime_library_dirs
 }
-
-
 
 macros = [('LUA_COMPAT_ALL', None)]
 if has_option('--without-assert'):
@@ -239,6 +129,7 @@ ext_modules = [
 if cythonize is not None:
     ext_modules = cythonize(ext_modules)
 
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 def read_file(filename):
     with open(os.path.join(basedir, filename)) as f:
@@ -254,13 +145,9 @@ long_description = '\n\n'.join([
     read_file(text_file)
     for text_file in ['README.md']])
 
+print('torch install:'+ torch_install_dir)
 write_file(os.path.join('lutorpy', 'version.py'), "__version__ = '%s'\n" % VERSION)
-
-if config.get('libfile'):
-    # include lua51.dll in the lib folder if we are on windows
-    extra_setup_args['package_data'] = {'lutorpy': [config['libfile']]}
-
-
+write_file(os.path.join('lutorpy', 'torch_path.py'), "__torch_path__ = '%s'\n" % torch_install_dir)
 # call distutils
 
 setup(
