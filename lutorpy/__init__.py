@@ -10,11 +10,6 @@ import torch_path
 
 TorchInstallPath = torch_path.__torch_path__
 
-try:
-    os.system(os.path.join(TorchInstallPath, "bin/torch-activate"))
-except:
-    pass
-
 if _platform == "linux" or _platform == "linux2":
     lualib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libluajit.so"), mode=ctypes.RTLD_GLOBAL)
     THlib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libTH.so"), mode=ctypes.RTLD_GLOBAL)
