@@ -50,7 +50,7 @@ if osfamily in ['Linux', 'Darwin']:
     if 'DEBUG' in os.environ:
         compile_options.append('-O0')
         compile_options.append('-g')
- 
+
 runtime_library_dirs = []
 libraries = []
 extra_link_args = []
@@ -79,7 +79,7 @@ def has_option(name):
 
 import numpy
 
-includes = [torch_install_dir, numpy.get_include()]
+includes = [ os.path.join(torch_install_dir, '/include'), os.path.join(torch_install_dir, '/include/TH'), numpy.get_include()]
 
 ext_args = {
     'include_dirs': includes,
