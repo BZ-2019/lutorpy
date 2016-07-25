@@ -10,7 +10,7 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
-VERSION = '1.3'
+VERSION = '1.3.1'
 
 extra_setup_args = {}
 
@@ -258,7 +258,7 @@ write_file(os.path.join('lutorpy', 'version.py'), "__version__ = '%s'\n" % VERSI
 
 if config.get('libfile'):
     # include lua51.dll in the lib folder if we are on windows
-    extra_setup_args['package_data'] = {'lutorpy': [config['libfile']]}
+    extra_setup_args['package_data'] = {'lutorpy': [config['libfile']], '': ['README.md']}
 
 
 # call distutils
@@ -271,7 +271,6 @@ setup(
     maintainer="Wei OUYANG",
     maintainer_email="wei.ouyang@cri-paris.org",
     url="https://github.com/oeway/lutorpy",
-
     description="Python wrapper for torch and Lua/LuaJIT",
 
     long_description=long_description,
