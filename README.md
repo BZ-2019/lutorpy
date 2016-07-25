@@ -116,13 +116,18 @@ If you don't have numpy installed, install it by pip
 ``` bash
 pip install numpy
 ```
-Now, we are ready to install lutorpy
+Now, we are ready to install lutorpy, just use pip to install the released version:
+``` bash
+pip install lutorpy
+```
+
+Or, install from git repository:
 ``` bash
 git clone https://github.com/imodpasteur/lutorpy.git
 cd lutorpy
 sudo python setup.py install
 ```
-#### note that it has been tested on ubuntu, please report issue if you encountered error.
+#### note that for now, lutorpy is only tested on ubuntu, please report issue if you encountered error.
 
 
 # Step-by-step tutorial
