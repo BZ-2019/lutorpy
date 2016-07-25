@@ -6,15 +6,14 @@ import inspect
 from sys import platform as _platform
 import builtins
 
-try:
-    os.system(os.path.expanduser("~") + "/torch/install/bin/torch-activate")
-except:
-    pass
+import torch_path
+
+TorchInstallPath = torch_path.__torch_path__
 
 if _platform == "linux" or _platform == "linux2":
-    lualib = ctypes.CDLL(os.path.expanduser("~") + "/torch/install/lib/libluajit.so", mode=ctypes.RTLD_GLOBAL)
-    THlib = ctypes.CDLL(os.path.expanduser("~") + "/torch/install/lib/libTH.so", mode=ctypes.RTLD_GLOBAL)
-    luaTlib = ctypes.CDLL(os.path.expanduser("~") + "/torch/install/lib/libluaT.so", mode=ctypes.RTLD_GLOBAL)
+    lualib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libluajit.so"), mode=ctypes.RTLD_GLOBAL)
+    THlib = ctypes.CDLL(os.path.join(TorchInstallPath, "lib/libTH.so"), mode=ctypes.RTLD_GLOBAL)
+    luaTlib = ctypes.CDLL(os.path.join(TorchInstallPath,"lib/libluaT.so"), mode=ctypes.RTLD_GLOBAL)
 elif _platform == "darwin":
     lualib = ctypes.CDLL(find_library('luajit'), mode=ctypes.RTLD_GLOBAL)
     THlib = ctypes.CDLL(find_library('TH'), mode=ctypes.RTLD_GLOBAL)
