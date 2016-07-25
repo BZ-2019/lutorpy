@@ -11,7 +11,7 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
-VERSION = '1.3'
+VERSION = '1.3.3'
 
 extra_setup_args = {}
 
@@ -141,14 +141,15 @@ def write_file(filename, content):
         f.write(content)
 
 
-long_description = '\n\n'.join([
-    read_file(text_file)
-    for text_file in ['README.md']])
+long_description = '\n\n'
 
 print('torch install:'+ torch_install_dir)
 write_file(os.path.join('lutorpy', 'version.py'), "__version__ = '%s'\n" % VERSION)
 write_file(os.path.join('lutorpy', 'torch_path.py'), "__torch_path__ = '%s'\n" % torch_install_dir)
 # call distutils
+
+extra_setup_args['package_data'] = {'': ['README.md']}
+
 
 setup(
     name="lutorpy",
