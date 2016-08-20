@@ -7,6 +7,8 @@ from sys import platform as _platform
 import builtins
 import sys
 
+assert not os.path.exists('./lutorpy/_lupa.pyx'), 'PLEASE DO NOT IMPORT LUTORPY FROM SOURCE CODE FOLDER.'
+
 from lutorpy import torch_path
 
 TorchInstallPath = torch_path.__torch_path__
