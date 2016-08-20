@@ -5,8 +5,9 @@ import os
 import inspect
 from sys import platform as _platform
 import builtins
+import sys
 
-import torch_path
+from lutorpy import torch_path
 
 TorchInstallPath = torch_path.__torch_path__
 
@@ -63,12 +64,22 @@ import lutorpy
 
 def LuaRuntime(*args, **kwargs):
     global luaRuntime
-    if not kwargs.has_key('zero_based_index'):
+    if not 'zero_based_index' in kwargs:
         kwargs['zero_based_index']=True
     luaRuntime = lutorpy._lupa.LuaRuntime(*args, **kwargs)
     return luaRuntime
 
 LuaRuntime()
+
+class global_injector:
+    def __init__(self):
+        try:
+            self.__dict__['builtin'] = sys.modules['__builtin__'].__dict__
+        except KeyError:
+            self.__dict__['builtin'] = sys.modules['builtins'].__dict__
+    def __setattr__(self,name,value):
+        self.builtin[name] = value
+Global = global_injector()
 
 builtins_ = dir(builtins)
 warningList = []
@@ -78,7 +89,7 @@ def update_globals(globals_, verbose = False):
     lg = luaRuntime.globals()
     for k in lg:
         ks = str(k)
-        if ks in builtins_ or globals_.has_key(ks):
+        if ks in builtins_ or ks in globals_:
             if ks in builtins_ or inspect.ismodule(globals_[ks]):
                 if not ks in warningList:
                     warningList.append(ks)
@@ -88,8 +99,7 @@ def update_globals(globals_, verbose = False):
                 continue
         globals_[ks] = lg[ks]
         
-    global require
-    globals_['require'] = require
+    Global.require = require
         
 def require(module_name):
     ret = luaRuntime.require(module_name)
