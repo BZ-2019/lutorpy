@@ -81,7 +81,9 @@ class global_injector:
             self.__dict__['builtin'] = sys.modules['builtins'].__dict__
     def __setattr__(self,name,value):
         self.builtin[name] = value
-Global = global_injector()
+
+if sys.version_info.major == 3:
+    Global = global_injector()
 
 builtins_ = dir(builtins)
 warningList = []
@@ -100,8 +102,11 @@ def update_globals(globals_, verbose = False):
                 globals_[ks + '_'] = lg[ks]
                 continue
         globals_[ks] = lg[ks]
-        
-    Global.require = require
+    if sys.version_info.major == 2:
+        global require
+        globals_['require'] = require
+    else:
+        Global.require = require
         
 def require(module_name):
     ret = luaRuntime.require(module_name)
