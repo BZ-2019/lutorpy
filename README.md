@@ -316,7 +316,7 @@ Lutorpy is built upon [lupa](https://github.com/scoder/lupa), there are more fea
 Have a bug? Please create an issue here on GitHub at https://github.com/imodpasteur/lutorpy/issues.
 
 # Support lutorpy project
-Like lutorpy project? It solved your problem? Let us know by giving lutorpy project a star, so we know how many people are intereted, thank you.
+Like lutorpy project? It solved your problem? Let us know by giving lutorpy project a star, so we know how many people are interested, thank you.
 
 # Acknowledge
 
