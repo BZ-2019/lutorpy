@@ -289,6 +289,40 @@ for i in range(2500):
     mlp._updateParameters(0.01)
 
 ```
+
+Train a model with nn trainer.
+```python
+require("nn")
+mlp = nn.Sequential()
+mlp._add(nn.Linear(2, 20)) # 2 input nodes, 20 hidden nodes
+mlp._add(nn.Tanh())
+mlp._add(nn.Linear(20, 1)) # 1 output nodes
+criterion = nn.MSECriterion()
+
+class DataSet():
+    def __init__(self):
+        self.data = []
+        for i in range(2500):
+            # random sample
+            input= torch.randn(2)    # normally distributed example in 2d
+            output= torch.Tensor(1)
+            if input[0]*input[1] > 0:  # calculate label for XOR function
+                output[0] = -1 # output[0] = -1
+            else:
+                output[0] = 1 # output[0] = 1
+            # here we need to add one empty column because lua index will start at 1
+            self.data.append((0, input,output))
+    def __getitem__(self, key):
+        if key == 'size':
+            return lambda x: len(self.data)
+        return self.data[key-1]
+
+dataset = DataSet()
+criterion = nn.MSECriterion()  
+trainer = nn.StochasticGradient(mlp, criterion)
+trainer.learningRate = 0.01
+trainer._train(dataset)
+```
 ## test the model
 
 ``` python
