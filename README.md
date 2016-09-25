@@ -297,7 +297,6 @@ mlp = nn.Sequential()
 mlp._add(nn.Linear(2, 20)) # 2 input nodes, 20 hidden nodes
 mlp._add(nn.Tanh())
 mlp._add(nn.Linear(20, 1)) # 1 output nodes
-criterion = nn.MSECriterion()
 
 class DataSet():
     def __init__(self):
