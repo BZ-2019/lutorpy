@@ -310,7 +310,7 @@ class DataSet():
             else:
                 output[0] = 1 # output[0] = 1
             # here we need to add one empty column because lua index will start at 1
-            self.data.append((0, input,output))
+            self.data.append((i, input,output))
     def __getitem__(self, key):
         if key == 'size':
             return lambda x: len(self.data)
