@@ -95,7 +95,10 @@ arr = np.random.randn(100)
 x = torch.fromNumpyArray(arr)
 
 # apply model forward method with "._" syntax(which is equivalent to ":" in lua)
-y = model._forward(x)
+yt = model._forward(x)
+
+# convert to numpy array
+yn = yt.asNumpyArray()
 ```
 
 You can also have a look at the step-by-step tutorial and more complete example.
