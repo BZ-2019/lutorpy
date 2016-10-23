@@ -11,7 +11,6 @@ Lutorpy is a libray built for deep learning with torch in python,  by a two-way 
 * support zero-base indexing (lua uses 1-based indexing)
 * automatic prepending self to function by `"._"` syntax, easily convert `":"` operator in lua to python
 
-
 #### * Interested in Lutorpy project? Please let us know by giving a star.
 
 # Convert from Lua to Python/Lutorpy
@@ -346,6 +345,10 @@ x[0] = -0.5; x[1] = -0.5; print(mlp._forward(x))
 
 # More details about using lua in python
 Lutorpy is built upon [lupa](https://github.com/scoder/lupa), there are more features provided by lupa could be also useful, please check it out.
+
+# Notes
+* python2 and python3 are both supported
+* unfortunately, OSX is not supported so far
 
 # Bug tracker
 
