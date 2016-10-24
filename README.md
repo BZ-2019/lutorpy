@@ -85,6 +85,7 @@ plt.plot(yn)
 import numpy as np
 import lutorpy as lua
 
+# load your torch file(for example xx.t7 containing the model and weights)
 model = torch.load('PATH TO YOUR MODEL FILE')
 
 # generate your input data with numpy
