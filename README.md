@@ -104,11 +104,13 @@ yn = yt.asNumpyArray()
 You can also have a look at the step-by-step tutorial and more complete example.
 
 # Installation
-You need to install torch before you start
+You need to install torch before you start (only LuaJIT engine is supported for now)
 ``` bash
 # in a terminal, run the commands WITHOUT sudo
 git clone https://github.com/torch/distro.git ~/torch --recursive
-cd ~/torch; bash install-deps;
+cd ~/torch
+./clean.sh
+bash install-deps
 ./install.sh
 ```
 Then, you can use luarocks to install torch/lua modules
