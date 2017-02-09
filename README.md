@@ -119,11 +119,11 @@ luarocks install nn
 ```
 If you don't have numpy installed, install it by pip
 ``` bash
-pip install numpy
+sudo pip install numpy
 ```
 Now, we are ready to install lutorpy, just use pip to install the released version:
 ``` bash
-pip install lutorpy
+sudo pip install lutorpy
 ```
 
 Or, install from git repository:
@@ -133,6 +133,7 @@ cd lutorpy
 sudo python setup.py install
 ```
 #### note that for now, lutorpy is only tested on ubuntu, please report issue if you encountered error.
+#### if the setup script failed to detect your torch, it may related to: [issue #38](https://github.com/imodpasteur/lutorpy/issues/38)
 
 
 # Step-by-step tutorial
